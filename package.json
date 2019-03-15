@@ -1,14 +1,13 @@
 {
-  "name": "marp-cli-example",
+  "name": "front-dev-news",
   "version": "0.0.0",
-  "author": "Yuki Hattori <yukihattori1116@gmail.com>",
-  "license": "WTFPL",
+  "author": "seonhyungjo <seonhyung.jo@gmail.com>",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "npm run -s og-image && npm run -s deck",
-    "deck": "marp PITCHME.md -o dist/index.html",
-    "now-build": "cat PITCHME.md | marp -o dist/index.html",
-    "og-image": "marp PITCHME.md -o dist/og-image.jpg",
+    "deck": "marp NEWS.md -o dist/index.html",
+    "og-image": "marp NEWS.md -o dist/og-image.jpg",
     "start": "marp -ps ."
   },
   "devDependencies": {
