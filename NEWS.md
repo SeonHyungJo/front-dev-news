@@ -1,160 +1,546 @@
 ---
 marp: true
-title: 최신 브라우저의 내부 살펴보기
-description: Chrome 브라우저에 대해서 좀 더 알아보자
+title: Basic_CallStack
+description: Basic_CallStack
 # theme: uncover
 paginate: true
 ---
 
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-# <!--fit--> 최신 브라우저의 내부 살펴보기
+# <!--fit--> Basic_CallStack
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
 
-## 성능
+## Intro
 
-우리는 항상 Performance를 늘리려고 애를 쓴다. 
-당연하게 GPU를 사용하게 된다. 흔히 우리가 알고 있는 **하드웨어 가속화**를 하는 것이다.
+먼저 들어가기에 앞서 우리가 사용하려는 언어는 스크립트 언어로 이름은 **자바스크립** 이다.
 
-> 특정 작업을 CPU가 아닌 다른 특별한 장치를 통해 수행 속도를 높이는 것을 
-> '**하드웨어 가속(hardware accelerated)**'이라 한다. 
-> 
-> 브라우저에서 하드웨어 가속은 주로 GPU를 사용한 그래픽 작업의 가속을 의미한다. 
-> 간단한 작업을 동시에 수많은 코어가 수행하는 GPU의 특성을 기반으로 그래픽 작업이 훨씬 빠르게 처리될 수 있다.
+그렇다면 우리가 사용할 언어가 어떻게 실행되는지 알아보기 위해서는 엔진에 대해서 알아야 한다.
+
+우리가 사용할 엔진은 **자바스크립트 엔진** 이다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
 
-## :computer: CPU
+## **V8 Engine**
 
-컴퓨터 부품에서 가장 중요한? **중앙처리장치**이다. 
+요즘에 많이 사용하고 좋다고 생각하는 브라우저는 **크롬** 이다. 크롬에서 사용되는 자바스크립트 엔진은 구글의 **V8 엔진** 이다. 
 
-흔히 연산을 담당하는 사람으로 따지면 두뇌라고 한다. 예전 CPU는 단일로 구성되어 있었지만 요즘은 CPU하나 안에 코어가 여러개가 들어가서 성능을 더 높이고 있다. 
+이 엔진에서의 2가지 Main Components가 있다.
+
+1. Memory Heap : 메모리의 할당이 일어나는 곳.
+2. Call Stack : Stack Frame이 실행되는 곳. 쉽게 말해서 우리가 작성한 코드가 실행되는 곳.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-## :video_camera: GPU
+## **Call Stack**
 
-GPU는 그래픽처리장치로 CPU와 다르게 GPU는 간단한 작업에만 특화가 되었는데 여러 GPU 코어를 동시에 사용하여 작업을 할 수 있다.
+Call Stack은 **LIFO** (Last In, First Out) 원리를 사용하여 함수 호출을 임시 저장하고 관리하는 데이터 구조
 
-이름에서 알 수 있듯이 GPU는 **그래픽 작업을 처리하기 위해 개발**되었다. 그래서 빠른 렌더링과 매끄러운 표현을 하는데 관련되어있다. 최근 몇 년 동안 GPU 가속을 통해 GPU가 단독으로 처리할 수 있는 계산이 점점 더 많아졌다.
+> LIFO : Last In, First Out의 데이터 구조 원칙에 따라 호출 스택이 작동한다. 스택으로 푸시 된 마지막 함수가 처음으로 튀어 나옴을 의미한다.
+
+:point_right: **자바스크립트에서**
+
+Call Stack은 주로 함수 호출에 된다. Call Stack이 하나이기 때문에 함수 실행은 위에서 아래로 한 번에 하나씩 수행된다.
+
+기본적으로 자바스크립트는 싱글 쓰레드 프로그래밍 언어이다. 이 말은 싱글 Call Stack을 가지고 있다는 것을 의미한다. 다른말로 하자면 한 번에 한가지의 일만 한다는 것이다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-## 프로세스와 스레드(Process and Thread)
+```javascript
+  function multiply(x, y) {
+      return x * y;
+  }
+  function printSquare(x) {
+      var s = multiply(x, x);
+      console.log(s);
+  }
+  printSquare(5);
+```
 
-**프로세스**는 애플리케이션이 실행하는 **프로그램**이라고 하며, **스레드**는 프로세스 내부에 있으며 프로세스로 실행되는 프로그램의 **일부를 실행**한다.
+위와 같은 코드가 있다고 한다면 `printSquare(5) ⇒ multiply(x, x) ⇒ console.log(s) ⇒ printSquare(5)` 으로 쌓이고 실행이 된다는 것을 의미한다.
 
-애플리케이션을 시작하면 프로세스가 하나가 만들어진다. 프로세스가 작업을 하기 위해 스레드를 생성할 수도 있지만 **선택 사항**이며, 애플리케이션을 닫으면 프로세스가 사라지고 운영체제가 메모리를 비운다.
-
-프로세스는 여러 작업을 수행하기 위해 운영체제에 다른 프로세스를 실행하라고 요청할 수 있다. 그러면 메모리의 다른 부분이 새 프로세스에 할당된다. 두개 이상의 프로세스가 서로 정보를 공유해야 할 때는 **IPC(inter process communication, 프로세스 간 통신)** 을 사용한다. 대부분의 애플리케이션이 이 방식으로 설계되어 있다. 작업 프로세스가 응답하지 않을 때 애플리케이션의 다른 부분을 실행하는 프로세스를 중지하지 않고 응답하지 않는 프로세스만 다시 시작할 수 있다.
+> 각각의 한 줄을 `Stack Frame`이라고 한다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-## 브라우저 아키텍처
+```javascript
+  function foo() {
+      throw new Error('SessionStack will help you resolve crashes :)');
+  }
 
-브라우저는 프로세스와 스레드를 어떻게 사용할까? 크게 방법은 2가지가 있다.
+  function bar() {
+      foo();
+  }
 
-1. 스레드를 많이 사용하는 프로세스 하나만 사용
-2. 스레드를 조금만 사용하는 프로세스를 여러 개 만들어 IPC로 통신
+  function start() {
+      bar();
+  }
+
+  start();
+```
+
+위와 같은 코드를 크롬에서 실행을 한다면 당연하게 에러가 떨어지면서 Stack형태를 자세히 볼 수있다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-### :one: **Chrome의 최근 아키텍처**
+다른 경우로는 Call Stack의 사이즈를 넘어서서 쌓이는 경우도 발생한다.
 
-상위 브라우저 프로세스는 애플리케이션의 각 부분을 맡고 있는 다른 프로세스를 조정한다. Renderer 프로세스는 여러 개가 만들어져 각 탭마다 할당이 된다. 
+```javascript
+  function foo() {
+      foo();
+  }
 
-최근까지 Chrome은 **탭마다 프로세스를 할당**했다. 이제는 사이트(iframe에 있는 사이트 포함)마다 프로세스를 할당한다고 한다.
+  foo();
+```
+
+위와 같은 코드를 사용하면 안되겠지만 위와 같은 경우는 브라우저에서 계속 쌓아가다가 **16000개가** 넘어가는 순간에 Stack Size가 넘쳤다고 나올 것이다.
+
+싱글 쓰레드는 멀티 쓰레드보다 다루기는 쉽다. (Deadlock_교착상태 같은 일이 발생하지 않으므로)
+
+그러나 역시 제한적이다.
+
+예시로 내가 버튼을 눌러서 서버에서 사진을 가져오려고 할 때. 버튼을 누르고 사진을 가져올 때까지 브라우저는 멈춘 상태가 되어 버린다.
+
+이에 대안으로 **Asynchronous Callbacks** 이다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-### :two: **어떤 프로세스가 무엇을 담당하나**
+## **Web API**
 
-:zap: **브라우저 프로세스**	 : 주소 표시줄, 북마크 막대, 뒤로 가기 버튼, 앞으로 가기 버튼 등 애플리케이션의 "chrome" 부분을 제어한다. 네트워크 요청이나 파일 접근과 같이 눈에 보이지는 않지만 권한이 필요한 부분도 처리한다.
+우리가 사용하는 자바스크립트에도 제공이 되지않는 것들이 있다. 가령 우리가 비동기를 사용하기 위해서 사용하는 `setTimeOut()`, `setInterval()` 등등은  브라우저에서 제공하는 API라고 생각하면 된다. 
 
-:zap: **렌더러 프로세스**	: 탭 안에서 웹 사이트가 표시되는 부분의 모든 것을 제어한다.
+간략하게 지원하는 API로는 
 
-:zap: **플러그인 프로세스**	: 웹 사이트에서 사용하는 플러그인(예: Flash)을 제어한다.
+1. DOM
+2. AJAX(==XMLHttpRequest)
+3. setTimeOut
+4. 등등
 
-:zap: **GPU 프로세스** : GPU 작업을 다른 프로세스와 격리해서 처리한다. GPU는 여러 애플리케이션의 요청을 처리하고 같은 화면에 요청받은 내용을 그리기 때문에 GPU 프로세스는 별도 프로세스로 분리되어 있다.
+이 있다. 
 
-이 외 확장 프로그램(Extension) 프로세스, 유틸리티 프로세스 등등 ...
+> 브라우저 웹 API : DOM 이벤트, XMLHttpRequest, setTimeout 등과 같은 비동기 이벤트를 처리하기 위해 C ++로 구현 된 **브라우저로 만든 쓰레드**
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-### :three: **다중 프로세스 아키텍처가 Chrome에 주는 이점**
+## **Queue(Message Queue || CallBack Queue)**
 
-탭마다 렌더러 프로세스를 하나 사용하는 경우를 생각해보면. 3개의 탭이 열려 있고 각 탭은 독립적인 렌더러 프로세스에 의해 실행된다. 이때 한 탭이 응답하지 않으면 그 탭만 닫고 실행 중인 다른 탭으로 이동할 수 있다. 모든 탭이 하나의 프로세스에서 실행 중이었다면 탭이 하나만 응답하지 않아도 모든 탭이 죽는일이 벌어졌을 것이다.
+자바스크립트 런타임에는 처리할 메시지 목록과 콜백 함수인 메시지 Queue이 있다. 현재 Stack의 용량이 충분하다면 Queue에서 메시지를 가져와서 처리된 것의 CallBack function을 실행한다.
 
-브라우저의 작업을 여러 프로세스에 나눠서 처리하는 방법의 또 다른 장점은 **보안과 격리**이다. 운영체제를 통해 프로세스의 권한을 제한할 수 있어 브라우저는 특정 프로세스가 특정 기능을 사용할 수 없게 제한할 수 있다. 
-
-예를 들어 Chrome은 렌더러 프로세스처럼 임의의 사용자 입력을 처리하는 프로세스가 임의의 파일에 접근하지 못하게 제한한다.
+기본적으로 이러한 메시지는 콜백 기능이 제공되면 외부 비동기 이벤트에 대한 응답을 한다. 예를 들어 사용자가 버튼을 클릭하고 콜백 함수가 제공되지 않은 경우 아무런 메시지도 Queue에 추가되지 않게 되는 것이다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-### :four: **더 많은 메모리 절약 - Chrome의 서비스화**
+## **Event Loop**
 
-Chrome은 브라우저의 각 부분을 서비스로 실행해 여러 프로세스로 쉽게 분할하거나 하나의 프로세스로 통합할 수 있도록 아키텍처를 변경하고 있다.
+네크워크는 느리다. 그래서 사진을 불러오는 것은 느리다. 이에 사용하는 것이 우리가 흔히 `AJAX` 라고 부르는 **비동기 함수** 이다. 만약 이러한 작업이 동기라면 위와 같이 멈추는 현상이 일어날 것이다.
 
-성능이 좋은 하드웨어에서 Chrome이 실행 중일 때에는 각 서비스를 여러 프로세스로 분할해 안정성을 높이고, 리소스가 제한적인 장치에서 실행 중일 때에는 서비스를 하나의 프로세스에서 실행해서 메모리 사용량을 줄이는 것이 기본 아이디어이다. 메모리 절약을 위해 프로세스를 합치는 이런 방식은 `Android`와 같은 플랫폼에서는 이전부터 사용되었다.
+가장 쉬운 해결책이 **비동기 Callbacks** 이다. 위에서 언급한 **Web API** 에서 제공하는 것에 **비동기 Callbacks**이다.
+
+`console.log()`와 다르게 바로 실행이 되지 않는다. 그렇다면 이런 것들은 어떻게 되는 것인가?
+
+응답에서 호출자를 분리하면 비동기 작업이 완료되고 콜백이 시작될때까지 기다리는 시간동안 자바스크립트 런타임에서는 다른 작업을 할수 있다. 
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-### :five: **프레임별로 실행되는 렌더러 프로세스 - 사이트 격리**
+Web API에서 요청한 작업을 완료한 후 Callbacks을 실행해야한다. 그러나 만약 작업이 완료가 되고 직접 Web API쪽에서 Call Stack에 실행코드를 넣을 수 있다면 마음대로 바로 나타날 것이다. 
 
-`iframe`의 사이트를 별도의 렌더러 프로세스에서 실행하는 것이다. 탭마다 렌더러 프로세스를 할당하는 모델에서는 `iframe`의 사이트가 같은 렌더러 프로세스에서 작동하기 때문에 서로 다른 사이트 간에 메모리가 공유될 수 있다는 문제가 있어 지속적으로 논의가 있었다. 
+그래서 있는 것이 **Queue** 이다. Web API에서 요청한 작업을 완료한 후에 **Queue** 에 넣어 준다. 
 
-a.com 사이트의 웹 페이지와 b.com 사이트의 웹 페이지를 동일한 렌더러 프로세스에서 실행하는 것이 문제가 없어 보일 수 있다. 하지만 동일 출처 정책(한 사이트는 동의 없이 다른 사이트의 데이터에 접근할 수 없어야 함)은 웹 보안 모델의 핵심이다.
+**Event Loop는 이제 Call Stack이 비었을 때 Queue에서 들어온 Callbacks를 수행한다.**
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-이 정책을 우회하는 것이 보안 공격의 주요 목표이다. 프로세스를 격리하는 것이 사이트를 격리하는 가장 효과적인 방법이다. **Meltdown과 Spectre 사태**로 여러 프로세스를 사용해 사이트를 격리해야 하는게 당연해졌다. `Chrome 67` 부터 데스크톱에서 사이트 격리를 기본으로 사용하도록 설정하면서 탭에서 `iframe` 의 사이트에 별도의 렌더러 프로세스가 적용된다.
+## **Execute Context**
 
-사이트 격리는 다른 렌더러 프로세스를 할당하는 것만큼 간단하지 않다. `iframe` 이 서로 통신하는 방식을 근본적으로 바꿔야 하기 때문이다. 다른 프로세스에서 실행되는 `iframe` 이 있는 웹 페이지에서 개발자 도구를 자연스럽게 사용하게 하려면 눈에 보이지 않은 많은 작업이 뒤에서 이루어져야 한다. 또 단순히 `Ctrl + F` 키를 눌러 페이지에서 단어를 찾으려고 해도 서로 다른 렌더러 프로세스를 오가며 찾아야 한다.
+실행 컨텍스트는 자바 스크립트 코드가 평가되고 실행되는 환경의 추상적인 개념이다. 자바 스크립트에서 코드를 실행할 때마다 실행 컨텍스트 내에서 실행된다.
+
+기본적으로 자바스크립트 내에는 3가지 타입의 실행컨텍스트가 있다고 한다.
+
+1. Global 
+2. Functional
+3. ~~Eval Function~~
+
+그러나 중요한 것은 **1번과 2번**이다.
 
 ---
 <!--
 _backgroundColor: #123
-_color: #fff
+_color: #aaa
 -->
-#### :raised_hand: Reference
+### Execution Stack
 
-- [최신 브라우저의 내부 살펴보기 1](https://d2.naver.com/helloworld/2922312)
-- [인텔 사태, CPU 보안 이슈 정리, 멜트다운(Meltdown)](https://fillin.tistory.com/259)
+실행 스택은 우리가 위에서 보았다. Call Stack의 개념이다.
+
+> LIFO (Last In, First Out) 원리를 사용하여 함수 호출을 임시 저장하고 관리하는 데이터 구조이다.
+
+:point_right: 어떻게 실행 컨텍스트를 만드는가?
+
+실행컨텍스트를 만드는데 2개의 단계가 있다.
+
+1. Creation 단계
+2. Execute 단계
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Creation 단계
+
+한국말로는 만드는 단계이다. 먼저 2가지를 만든다.
+
+1. **LexicalEnvironment**
+2. VariableEnvironment
+
+기본적인 형태는 아래와 같다.
+```javascript
+  ExecutionContext = {
+    LexicalEnvironment = <ref. to LexicalEnvironment in memory>,
+    VariableEnvironment = <ref. to VariableEnvironment in  memory>,
+  }
+```
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Lexical Environment
+
+Lexical Environment은 **식별자, 변수 맵핑**을 가지고 있는 구조이다. 
+
+>여기서 식별자는 변수/함수의 이름을 가리키며 변수는 실제 객체 [함수 객체 및 배열 객체 포함] 대한 참조입니다.
+
+```javascript
+  var a = 20;
+  var b = 40;
+  function foo() {
+    console.log('bar');
+  }
+```
+
+```javascript
+  lexicalEnvironment = {
+    a: 20,
+    b: 40,
+    foo: <ref. to foo function>
+  }
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+3가지의 정보를 가지고 있다.
+
+1. **Environment Record** : 변수 및 함수 선언이 Lexical Environment 내에 저장되는 장소
+2. **Reference to the outer environment** : 외부 환경에 대한 참조
+3. **This binding** : `this`가 결정되거나 설정된다.
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Environment Record
+
+기본적으로 2가지 정보를 담고 있다.
+
+- **Declarative environment record**(선언적 환경 정보)
+  
+변수 및 함수 선언을 저장합니다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+
+- **Object environment record**(객체 환경 정보)
+
+전역 코드의 Lexical Environment에는 객체 환경 레코드가 포함되어 있다. 변수 및 함수 선언 외에 객체 환경 레코드는 전역 바인딩 개체 (브라우저의 창 개체)도 저장합니다. 따라서 각 바인딩 객체의 속성에 대해 새 항목이 레코드에 만들어진다.
+
+함수 코드의 경우 Environment Record에는 함수에 전달 된 인덱스와 인수 사이의 매핑과 함수에 전달 된 인수의 길이가 포함 된 `arguments` 객체도 포함이 된다. 
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+  function foo(a, b) {
+    var c = a + b;
+  }
+
+  foo(2, 3);
+
+  // argument object
+  Arguments: {0: 2, 1: 3, length: 2},
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Reference to the Outer Environment
+
+외부 환경에 대한 참조는 outer environment에 액세스 할 수 있음을 의미한다. 즉, 자바 스크립트 엔진은 현재 lexical environment에서 찾을 수 없는 경우 outer environment에서 변수를 찾을 수 있다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### This Binding
+
+여기에는 어렵고도 중요한 개념인 `this`가 결정되거나 설정된다.
+
+전역 실행 컨텍스트에서이 값은 전역 개체를 참조합니다.
+
+함수 실행 컨텍스트에서이 값은 함수가 호출되는 방식에 따라 다르게 `this`가 나온다. 객체 참조에 의해 호출되면 `this` 값은 해당 객체로 설정되고, 그렇지 않으면이 값은 전역 객체로 설정되거나 정의되지 않는다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+  const person = {
+    name: 'peter',
+    birthYear: 1994,
+    
+    calcAge: function() {
+      console.log(2018 - this.birthYear);
+    }
+  }
+
+  person.calcAge(); 
+  // 'this' refers to 'person', because 'calcAge' was called with //'person' object reference
+  
+  const calculateAge = person.calcAge;
+  calculateAge();
+  // 'this' refers to the global window object, because no object reference was given
+```
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Variable Environment
+
+이것은 위에서 봐왔던 LexicalEnvironment와 같다.
+
+ES6에서 LexicalEnvironment 구성 요소와 VariableEnvironment 구성 요소의 차이점 중 하나는 함수 선언과 변수 (`let` 및 `const`)바인딩을 저장하는데 사용되는 반면, 후자는 변수 (`var`)바인딩만 저장하는 데 사용된다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### Execute 단계
+
+이 단계에서 모든 변수에 대한 할당이 완료되고 코드가 최종적으로 실행된다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+  let a = 20;
+  const b = 30;
+  var c;
+  
+  function multiply(e, f) {
+   var g = 20;
+   return e * f * g;
+  }
+  
+  c = multiply(20, 30);
+```
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+GlobalExectionContext = {
+  LexicalEnvironment: {
+    EnvironmentRecord: {
+      Type: "Object",
+      // Identifier bindings go here
+      a: < uninitialized >,
+      b: < uninitialized >,
+      multiply: < func >
+    }
+    outer: <null>,
+    ThisBinding: <Global Object>
+  },
+  
+  VariableEnvironment: {
+    EnvironmentRecord: {
+      Type: "Object",
+      // Identifier bindings go here
+      c: undefined,
+    }
+    outer: <null>,
+    ThisBinding: <Global Object>
+  }
+}
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+GlobalExectionContext = {
+    
+  LexicalEnvironment: {
+    EnvironmentRecord: {
+      Type: "Object",
+      // Identifier bindings go here
+      a: 20,
+      b: 30,
+      multiply: < func >
+    }
+    outer: <null>,
+    ThisBinding: <Global Object>
+  },
+    
+  VariableEnvironment: {
+    EnvironmentRecord: {
+      Type: "Object",
+      // Identifier bindings go here
+      c: undefined,
+    }
+    outer: <null>,
+    ThisBinding: <Global Object>
+  }
+}
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+  FunctionExectionContext = {
+  LexicalEnvironment: {
+      EnvironmentRecord: {
+        Type: "Declarative",
+        // Identifier bindings go here
+        Arguments: {0: 20, 1: 30, length: 2},
+      },
+      outer: <GlobalLexicalEnvironment>,
+      ThisBinding: <Global Object or undefined>,
+    },
+  VariableEnvironment: {
+      EnvironmentRecord: {
+        Type: "Declarative",
+        // Identifier bindings go here
+        g: undefined
+      },
+      outer: <GlobalLexicalEnvironment>,
+      ThisBinding: <Global Object or undefined>
+    }
+  }
+
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+  FunctionExectionContext = {
+  LexicalEnvironment: {
+      EnvironmentRecord: {
+        Type: "Declarative",
+        // Identifier bindings go here
+        Arguments: {0: 20, 1: 30, length: 2},
+      },
+      outer: <GlobalLexicalEnvironment>,
+      ThisBinding: <Global Object or undefined>,
+    },
+  VariableEnvironment: {
+      EnvironmentRecord: {
+        Type: "Declarative",
+        // Identifier bindings go here
+        g: 20
+      },
+      outer: <GlobalLexicalEnvironment>,
+      ThisBinding: <Global Object or undefined>
+    }
+  }
+```
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+함수가 완료된 후 반환 값은 c 안에 저장된다. 그래서 글로벌 Variable Environment이 업데이트된다. 그 후, 전역 코드가 완료되고 프로그램이 완료가 된다.
+
+`let` 및 `const` 정의 변수는 생성 단계에서 연관된 값이 없지만 `var` 정의 변수는 `undefined` 로 설정된다.
+
+이는 생성 단계에서 함수 선언이 환경에 전체적으로 저장되는 동안 변수 및 함수 선언에 대해 코드가 검색되고 변수가 초기에 `undefined` (`var`의 경우)로 설정되거나 초기화되지 않은 상태로 유지되기 때문이다. `let`과 `const`의 경우).
+
+이것이 `var` 정의 변수가 선언되기 전에 (정의되지는 않았지만) `var` 정의 변수에 액세스 할 수 있지만 `let` 및 `const` 변수가 선언되기 전에 액세스 할 때 참조 오류가 발생하는 이유이다.
+
+실행 단계에서 자바스크립트 엔진이 `let` 변수의 값을 소스 코드에서 선언된 실제 위치에서 찾지 못하면 정의되지 않은 값을 할당합니다.
+
