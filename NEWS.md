@@ -1,7 +1,7 @@
 ---
 marp: true
-title: Basic_CallStack
-description: Basic_CallStack
+title: Basic_Module
+description: Basic_Module
 # theme: uncover
 paginate: true
 ---
@@ -10,7 +10,7 @@ paginate: true
 _backgroundColor: #123
 _color: #aaa
 -->
-# <!--fit--> Basic_CallStack
+# <!--fit--> Basic_Module
 
 ---
 <!--
@@ -20,374 +20,82 @@ _color: #aaa
 
 ## Intro
 
-먼저 들어가기에 앞서 우리가 사용하려는 언어는 스크립트 언어로 이름은 **자바스크립** 이다.
+**Webpack** 및 **SystemJS**와 같은 도구는 무엇일까? 
 
-그렇다면 우리가 사용할 언어가 어떻게 실행되는지 알아보기 위해서는 엔진에 대해서 알아야 한다.
+또는 **AMD**, **UMD**, **CommonJS**는 또 무엇인가? 
 
-우리가 사용할 엔진은 **자바스크립트 엔진** 이다.
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-
-## **V8 Engine**
-
-요즘에 많이 사용하고 좋다고 생각하는 브라우저는 **크롬** 이다. 크롬에서 사용되는 자바스크립트 엔진은 구글의 **V8 엔진** 이다. 
-
-이 엔진에서의 2가지 Main Components가 있다.
-
-1. Memory Heap : 메모리의 할당이 일어나는 곳.
-2. Call Stack : Stack Frame이 실행되는 곳. 쉽게 말해서 우리가 작성한 코드가 실행되는 곳.
+그것들은 어떻게 관련이 있는건가? 그리고 왜 그걸 왜 필요로 하게 되었을까?
 
 ---
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
-## **Call Stack**
 
-Call Stack은 **LIFO** (Last In, First Out) 원리를 사용하여 함수 호출을 임시 저장하고 관리하는 데이터 구조
+## 모듈이란?
 
-> LIFO : Last In, First Out의 데이터 구조 원칙에 따라 호출 스택이 작동한다. 스택으로 푸시 된 마지막 함수가 처음으로 튀어 나옴을 의미한다.
+모듈은 구현사항을 캡슐화하고 기능에 따라 Public API로 노출하여 다른 곳에서 쉽게 불러서 사용하도록 하며 재사용이 가능하도록 한 코드의 뭉치이다.
 
-:point_right: **자바스크립트에서**
+그렇다면 왜 모듈이 필요하게 되었을까?
 
-Call Stack은 주로 함수 호출에 된다. Call Stack이 하나이기 때문에 함수 실행은 위에서 아래로 한 번에 하나씩 수행된다.
-
-기본적으로 자바스크립트는 싱글 쓰레드 프로그래밍 언어이다. 이 말은 싱글 Call Stack을 가지고 있다는 것을 의미한다. 다른말로 하자면 한 번에 한가지의 일만 한다는 것이다.
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-```javascript
-  function multiply(x, y) {
-      return x * y;
-  }
-  function printSquare(x) {
-      var s = multiply(x, x);
-      console.log(s);
-  }
-  printSquare(5);
-```
-
-위와 같은 코드가 있다고 한다면 `printSquare(5) ⇒ multiply(x, x) ⇒ console.log(s) ⇒ printSquare(5)` 으로 쌓이고 실행이 된다는 것을 의미한다.
-
-> 각각의 한 줄을 `Stack Frame`이라고 한다.
+- 추상적인 코드 : 전문 라이브러리에 기능을 위임하여 실제 구현의 복잡성을 이해할 필요가 없도록 하기 위해서
+- 코드 캡슐화 : 코드를 변경하지 못하도록 하기 위해 모듈 내부의 코드를 숨기기 위해서
+- 재사용 코드 : 같은 코드를 계속해서 사용하기 위해서
+- 의존성 관리 : 우리의 코드를 다시 작성하지 않고 쉽게 종속성을 변경하기 위해서
 
 ---
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
-```javascript
-  function foo() {
-      throw new Error('SessionStack will help you resolve crashes :)');
-  }
+## Module patterns in ES5
 
-  function bar() {
-      foo();
-  }
+원래 자바스크립트라는 것은 모듈을 염두해두고 설계가 된 언어가 아니다. 시간이 지나면서 사람들이 필요에 따라 다양한 패턴을 만들게 된 것이다.
 
-  function start() {
-      bar();
-  }
-
-  start();
-```
-
-위와 같은 코드를 크롬에서 실행을 한다면 당연하게 에러가 떨어지면서 Stack형태를 자세히 볼 수있다.
+우리가 간단하게 볼만한 패턴은 **IIFE와 공개 모듈 패턴**이 있다.
 
 ---
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
-다른 경우로는 Call Stack의 사이즈를 넘어서서 쌓이는 경우도 발생한다.
+## 즉시 실행 함수 표현(Immediately-invoked Function Expression)
+
+IIFE는 ES5기준으로 가장 많이 사용되던 패턴 중 하나이다. `Scope Block` 을 만드는 유일한 방법은 함수이기 때문이다. 따라서 아래와 같은 예제는 `ReferenceError` 가 나온다.
 
 ```javascript
-  function foo() {
-      foo();
-  }
-
-  foo();
-```
-
-위와 같은 코드를 사용하면 안되겠지만 위와 같은 경우는 브라우저에서 계속 쌓아가다가 **16000개가** 넘어가는 순간에 Stack Size가 넘쳤다고 나올 것이다.
-
-싱글 쓰레드는 멀티 쓰레드보다 다루기는 쉽다. (Deadlock_교착상태 같은 일이 발생하지 않으므로)
-
-그러나 역시 제한적이다.
-
-예시로 내가 버튼을 눌러서 서버에서 사진을 가져오려고 할 때. 버튼을 누르고 사진을 가져올 때까지 브라우저는 멈춘 상태가 되어 버린다.
-
-이에 대안으로 **Asynchronous Callbacks** 이다.
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-## **Web API**
-
-우리가 사용하는 자바스크립트에도 제공이 되지않는 것들이 있다. 가령 우리가 비동기를 사용하기 위해서 사용하는 `setTimeOut()`, `setInterval()` 등등은  브라우저에서 제공하는 API라고 생각하면 된다. 
-
-간략하게 지원하는 API로는 
-
-1. DOM
-2. AJAX(==XMLHttpRequest)
-3. setTimeOut
-4. 등등
-
-이 있다. 
-
-> 브라우저 웹 API : DOM 이벤트, XMLHttpRequest, setTimeout 등과 같은 비동기 이벤트를 처리하기 위해 C ++로 구현 된 **브라우저로 만든 쓰레드**
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-## **Queue(Message Queue || CallBack Queue)**
-
-자바스크립트 런타임에는 처리할 메시지 목록과 콜백 함수인 메시지 Queue이 있다. 현재 Stack의 용량이 충분하다면 Queue에서 메시지를 가져와서 처리된 것의 CallBack function을 실행한다.
-
-기본적으로 이러한 메시지는 콜백 기능이 제공되면 외부 비동기 이벤트에 대한 응답을 한다. 예를 들어 사용자가 버튼을 클릭하고 콜백 함수가 제공되지 않은 경우 아무런 메시지도 Queue에 추가되지 않게 되는 것이다.
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-## **Event Loop**
-
-네크워크는 느리다. 그래서 사진을 불러오는 것은 느리다. 이에 사용하는 것이 우리가 흔히 `AJAX` 라고 부르는 **비동기 함수** 이다. 만약 이러한 작업이 동기라면 위와 같이 멈추는 현상이 일어날 것이다.
-
-가장 쉬운 해결책이 **비동기 Callbacks** 이다. 위에서 언급한 **Web API** 에서 제공하는 것에 **비동기 Callbacks**이다.
-
-`console.log()`와 다르게 바로 실행이 되지 않는다. 그렇다면 이런 것들은 어떻게 되는 것인가?
-
-응답에서 호출자를 분리하면 비동기 작업이 완료되고 콜백이 시작될때까지 기다리는 시간동안 자바스크립트 런타임에서는 다른 작업을 할수 있다. 
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-Web API에서 요청한 작업을 완료한 후 Callbacks을 실행해야한다. 그러나 만약 작업이 완료가 되고 직접 Web API쪽에서 Call Stack에 실행코드를 넣을 수 있다면 마음대로 바로 나타날 것이다. 
-
-그래서 있는 것이 **Queue** 이다. Web API에서 요청한 작업을 완료한 후에 **Queue** 에 넣어 준다. 
-
-**Event Loop는 이제 Call Stack이 비었을 때 Queue에서 들어온 Callbacks를 수행한다.**
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-## **Execute Context**
-
-실행 컨텍스트는 자바 스크립트 코드가 평가되고 실행되는 환경의 추상적인 개념이다. 자바 스크립트에서 코드를 실행할 때마다 실행 컨텍스트 내에서 실행된다.
-
-기본적으로 자바스크립트 내에는 3가지 타입의 실행컨텍스트가 있다고 한다.
-
-1. Global 
-2. Functional
-3. ~~Eval Function~~
-
-그러나 중요한 것은 **1번과 2번**이다.
-
----
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-### Execution Stack
-
-실행 스택은 우리가 위에서 보았다. Call Stack의 개념이다.
-
-> LIFO (Last In, First Out) 원리를 사용하여 함수 호출을 임시 저장하고 관리하는 데이터 구조이다.
-
-:point_right: 어떻게 실행 컨텍스트를 만드는가?
-
-실행컨텍스트를 만드는데 2개의 단계가 있다.
-
-1. Creation 단계
-2. Execute 단계
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### Creation 단계
-
-한국말로는 만드는 단계이다. 먼저 2가지를 만든다.
-
-1. **LexicalEnvironment**
-2. VariableEnvironment
-
-기본적인 형태는 아래와 같다.
-```javascript
-  ExecutionContext = {
-    LexicalEnvironment = <ref. to LexicalEnvironment in memory>,
-    VariableEnvironment = <ref. to VariableEnvironment in  memory>,
-  }
-```
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### Lexical Environment
-
-Lexical Environment은 **식별자, 변수 맵핑**을 가지고 있는 구조이다. 
-
->여기서 식별자는 변수/함수의 이름을 가리키며 변수는 실제 객체 [함수 객체 및 배열 객체 포함] 대한 참조입니다.
-
-```javascript
-  var a = 20;
-  var b = 40;
-  function foo() {
-    console.log('bar');
-  }
-```
-
-```javascript
-  lexicalEnvironment = {
-    a: 20,
-    b: 40,
-    foo: <ref. to foo function>
-  }
-```
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-3가지의 정보를 가지고 있다.
-
-1. **Environment Record** : 변수 및 함수 선언이 Lexical Environment 내에 저장되는 장소
-2. **Reference to the outer environment** : 외부 환경에 대한 참조
-3. **This binding** : `this`가 결정되거나 설정된다.
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### Environment Record
-
-기본적으로 2가지 정보를 담고 있다.
-
-- **Declarative environment record**(선언적 환경 정보)
-  
-변수 및 함수 선언을 저장합니다.
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-
-- **Object environment record**(객체 환경 정보)
-
-전역 코드의 Lexical Environment에는 객체 환경 레코드가 포함되어 있다. 변수 및 함수 선언 외에 객체 환경 레코드는 전역 바인딩 개체 (브라우저의 창 개체)도 저장합니다. 따라서 각 바인딩 객체의 속성에 대해 새 항목이 레코드에 만들어진다.
-
-함수 코드의 경우 Environment Record에는 함수에 전달 된 인덱스와 인수 사이의 매핑과 함수에 전달 된 인수의 길이가 포함 된 `arguments` 객체도 포함이 된다. 
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-```javascript
-  function foo(a, b) {
-    var c = a + b;
-  }
-
-  foo(2, 3);
-
-  // argument object
-  Arguments: {0: 2, 1: 3, length: 2},
-```
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### Reference to the Outer Environment
-
-외부 환경에 대한 참조는 outer environment에 액세스 할 수 있음을 의미한다. 즉, 자바 스크립트 엔진은 현재 lexical environment에서 찾을 수 없는 경우 outer environment에서 변수를 찾을 수 있다.
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### This Binding
-
-여기에는 어렵고도 중요한 개념인 `this`가 결정되거나 설정된다.
-
-전역 실행 컨텍스트에서이 값은 전역 개체를 참조합니다.
-
-함수 실행 컨텍스트에서이 값은 함수가 호출되는 방식에 따라 다르게 `this`가 나온다. 객체 참조에 의해 호출되면 `this` 값은 해당 객체로 설정되고, 그렇지 않으면이 값은 전역 객체로 설정되거나 정의되지 않는다.
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-```javascript
-  const person = {
-    name: 'peter',
-    birthYear: 1994,
+(function() {
+    var scoped = 42;
+}());
     
-    calcAge: function() {
-      console.log(2018 - this.birthYear);
-    }
-  }
-
-  person.calcAge(); 
-  // 'this' refers to 'person', because 'calcAge' was called with //'person' object reference
-  
-  const calculateAge = person.calcAge;
-  calculateAge();
-  // 'this' refers to the global window object, because no object reference was given
+console.log(scoped); // ReferenceError
 ```
 
----
+IIFE는 오픈소스라이브러리에서 Block scope를 만드는데 사용이 되었다. 이렇게 하게 되면 우리가 만들면서 공개하는 것과 아닌 것을 구분할 수 있게 된다.
 
+---
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
-#### Variable Environment
 
-이것은 위에서 봐왔던 LexicalEnvironment와 같다.
+```javascript
+var myModule = (function() {
+    // private variable, accessible only inside the IIFE
+    var counter = 0;
+    
+    function increment() {
+        counter++;
+    }
+    
+    // publicly exposed logic
+    return {    
+        increment: increment
+    }
+}());
+```
 
-ES6에서 LexicalEnvironment 구성 요소와 VariableEnvironment 구성 요소의 차이점 중 하나는 함수 선언과 변수 (`let` 및 `const`)바인딩을 저장하는데 사용되는 반면, 후자는 변수 (`var`)바인딩만 저장하는 데 사용된다.
-
----
-
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
-#### Execute 단계
-
-이 단계에서 모든 변수에 대한 할당이 완료되고 코드가 최종적으로 실행된다.
+ES6에서는 modules라는 스펙이 추가가 되어 modules를 사용할 수 있다. 현재 이 모듈은 자신의 범위를 선언하고 모듈 내부에서 생성된 변수는 전역객체에서 부를 수 없도록 한다.
 
 ---
 
@@ -396,16 +104,159 @@ _backgroundColor: #123
 _color: #aaa
 -->
 ```javascript
-  let a = 20;
-  const b = 30;
-  var c;
-  
-  function multiply(e, f) {
-   var g = 20;
-   return e * f * g;
-  }
-  
-  c = multiply(20, 30);
+!function() {
+    alert("Hello from IIFE!");
+}();
+```
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+
+위의 예제는 놀랍게도 IIFE이다. 우리가 흔히 알고 있는 모양새와 다르다고 생각해서 아니라고 할 수 있다.  그러나 우리가 사용하는 IIFE에서의 괄호는 표현식으로 나타내는 것에 불가하다. 그래서 표현식으로 나타낼 수 있는 어떤 것이든 생성후 바로 실행이 되도록하는 문장이 될 수 있는 것이다.
+
+```javascript
+void function() {
+    alert("Hello from IIFE!");
+}();
+```
+
+또한 `void` 역시 기본적으로 함수가 표현식으로 취급되도록 한다.
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+## 전통적인 IIFE
+
+처음에 예제에서 보았듯이 IIFE 패턴의 핵심은 함수를 표현식으로 바꾸고 즉시 실행하는 것이다.
+
+```javascript
+(function() {
+    alert("I am not an IIFE yet!");
+});
+```
+
+위의 코드는 단순하게 함수를 괄호로 감싸고 있다. 그러나 이 함수식은 실행이 바로 되지 않으므로 즉시 실행 함수가 아니다. 이걸 IIFE로 바꾸기 위해서는 2가지의 스타일을 변환이 필요하다.
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+// Variation 1
+(function() {
+    alert("I am an IIFE!");
+}());
+    
+// Variation 2
+(function() {
+    alert("I am an IIFE, too!");
+})();
+```
+
+위의 예제에는 익숙한 문법이 있기도 하고 문법이 이상하다고 생각되는 것도 있다. 이걸 간단하게 살펴보면
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+
+1. Variation 1의 4행에서 호출을 위한 괄호를 안쪽에 넣었다. 다시 바깥 괄호는 함수 밖의 함수 표현식을 만드는데 필요하게 된다.
+2. Variation 2에서 마지막줄의 괄호는 함수 표현식을 호출하기 위한 괄호가 밖에 위치하고 있다.
+
+두가지 방법은 널리 사용되고 있다. 나중에 핵심부분으로 들어가게되면 2가지의 작동이 다르다. 그러나 상관없이 자신이 원하는 방법을 사용하면 된다.
+
+작동하는 예제와 작동하지 않는 두가지 예제를 보자 익명의 함수를 사용하는 것은 좋은 방법이 아니므로 지금부터는 IIFE의 이름을 적어주자
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+```javascript
+// Valid IIFE
+(function initGameIIFE() {
+    // All your magical code to initalize the game!
+}());
+    
+// Following two are invalid IIFE examples
+function nonWorkingIIFE() {
+    // Now you know why you need those parentheses around me!
+    // Without those parentheses, I am a function definition, not an expression.
+    // You will get a syntax error!
+}();
+    
+function () {
+    // You will get a syntax error here as well!
+}();
+```
+
+위의 예제를 실행하게 되면서 우리가 왜 괄호가 필요한지 알게 될 것이다. IIFE를 만들려고 하면 우리는 표현식이 필요하다. 함수 선언, 함수 문장은 필요가 없다.
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+#### <!--fit--> IIFE의 사용법 3가지
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### IIFEs and private variables
+
+```javascript
+(function IIFE_initGame() {
+    // Private variables that no one has access to outside this IIFE
+    var lives;
+    var weapons;
+        
+    init();
+    
+    // Private function that no one has access to outside this IIFE
+    function init() {
+        lives = 5;
+        weapons = 10;
+    }
+}());
+```
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### IIFEs with a return value
+
+```javascript
+var result = (function() {
+    return "From IIFE";
+}());
+    
+alert(result); // alerts "From IIFE"
+```
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### IIFEs with parameters
+
+```javascript
+(function IIFE(msg, times) {
+    for (var i = 1; i <= times; i++) {
+        console.log(msg);
+    }
+}("Hello!", 5));
 ```
 
 ---
@@ -414,29 +265,171 @@ _color: #aaa
 _backgroundColor: #123
 _color: #aaa
 -->
+## Classical JavaScript module pattern
+
+우리는 전체 시퀀스를 손상시키지않도록 작동하는 싱글톤 객체를 구현해보려고 한다.
+
 ```javascript
-GlobalExectionContext = {
-  LexicalEnvironment: {
-    EnvironmentRecord: {
-      Type: "Object",
-      // Identifier bindings go here
-      a: < uninitialized >,
-      b: < uninitialized >,
-      multiply: < func >
+ var Sequence = (function sequenceIIFE() {
+        
+    // Private variable to store current counter value.
+    var current = 0;
+        
+    // Object that's returned from the IIFE.
+    return {
+    };
+        
+}());
+    
+alert(typeof Sequence); // alerts "object"
+```
+
+위의 예제를 간단하게 설명하면 `sequenceIIFE` 라는 이름을 가진 함수를 표현식으로 나타내어 IIFE 패턴을 적용하였으며 private 변수로 `current` 를 선언해서 0을 담았으며 `return` 으로 `Object` 를 반환해서 `Sequence` 라는 변수에 담고 있다. 그러므로 당연하게 그것의 타입은 `object` 가 나오게 된다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+
+```javascript
+var Sequence = (function sequenceIIFE() {
+        
+    // Private variable to store current counter value.
+    var current = 0;
+        
+    // Object that's returned from the IIFE.
+    return {
+        getCurrentValue: function() {
+            return current;
+        },
+            
+        getNextValue: function() {
+            current = current + 1;
+            return current;
+        }
+    };
+}());
+    
+console.log(Sequence.getNextValue()); // 1
+console.log(Sequence.getNextValue()); // 2
+console.log(Sequence.getCurrentValue()); // 2
+```
+
+좀 더 그럴듯하게 꾸며보자. 위의 예제에서 `return Object` 에 `getCurrentValue`, `getNextValue` 2가지의 함수를 만들어서 반환하고 있다. 그리고 후에 반환된 `Object` 의 함수를 실행시켜서 IIFE안쪽에 `current` 값을 바꾸거나 가져오고 있다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+`current` 라는 변수는 IIFE의 전용이므로, 클로저를 통해 접근할 수 있는 함수 외에는 변수를 수정하거나 직접 접근은 불가능하다.
+
+이렇게 IIFE와 클로져를 같이 사용해서 구현을 해보았다. 이것은 모듈패턴에 대한 매우 기본적인 변형이다. 더 많은 패턴들이 존재하지만 거의 모든 패턴이 IIFE를 사용하여 폐쇄범위를 만든다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+
+## When you can omit parentheses
+
+```javascript
+var result = function() {
+    return "From IIFE!";
+}();
+```
+
+함수 표현식 주위의 괄호는 기본적으로 함수가 명령문이 아닌 표현식이 되도록 한다. 
+위의 예에서 `function` 키워드는 명령문의 첫 단어가 아니라서 자바스크립트가 이걸 선언문이나 정의로 취급하지 않는다. 마찬가지로 표현식이라는 것을 알 경우 괄호를 생략할 수 있다.
+
+그러나 다른 개발자들분들도 그렇게 생각할지 모르지만 항상 괄호를 붙이는 것이 가독성에 좋다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+싱글톤 대신 모듈로 구현하여 생성자 함수를 노출할 수도 있다.
+
+```javascript
+// Expose module as global variable
+var Module = function(){
+    
+    // Inner logic
+    function sayHello(){
+        console.log('Hello');
     }
-    outer: <null>,
-    ThisBinding: <Global Object>
-  },
-  
-  VariableEnvironment: {
-    EnvironmentRecord: {
-      Type: "Object",
-      // Identifier bindings go here
-      c: undefined,
+    
+    // Expose API
+    return {
+        sayHello: sayHello
     }
-    outer: <null>,
-    ThisBinding: <Global Object>
-  }
+}
+
+var module = new Module();
+
+module.sayHello();  
+// => Hello
+```
+
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+## Module formats
+
+기존의 ES6이전에는 자바스크립트에 모듈을 정의하는 공식문법이 존재하지 않았다. 
+그래서 다양한 모듈을 정의해왔었는데
+
+- Asynchronous Module Definition (AMD)
+- CommonJS
+- Universal Module Definition (UMD)
+- System.register
+- ES6 module format
+
+---
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### Asynchronous Module Definition (AMD)
+
+AMD 형식은 브라우저에서 사용되며 정의함수를 사용하여 모듈을 정의한다.
+
+```javascript
+//Calling define with a dependency array and a factory function
+define(['dep1', 'dep2'], function (dep1, dep2) {
+    
+    //Define the module value by returning a value.
+    return function () {};
+});
+```
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### CommonJS format
+
+CommonJS 형식은 Node.js에서 사용되며 `require` 과 `module.exports` 를 사용하여 종속성 및 모듈을 정의한다.
+
+```javascript
+var dep1 = require('./dep1');  
+var dep2 = require('./dep2');
+    
+module.exports = function(){  
+  // ...
 }
 ```
 ---
@@ -445,102 +438,125 @@ GlobalExectionContext = {
 _backgroundColor: #123
 _color: #aaa
 -->
+### Universal Module Definition (UMD)
+
+UMD는 브라우저와 Node에서 모두 사용이 가능하다.
+
 ```javascript
-GlobalExectionContext = {
-    
-  LexicalEnvironment: {
-    EnvironmentRecord: {
-      Type: "Object",
-      // Identifier bindings go here
-      a: 20,
-      b: 30,
-      multiply: < func >
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['b'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('b'));
+    } else {
+        // Browser globals (root is window)
+        root.returnExports = factory(root.b);
     }
-    outer: <null>,
-    ThisBinding: <Global Object>
-  },
+}(this, function (b) {
+    //use b in some fashion.
     
-  VariableEnvironment: {
-    EnvironmentRecord: {
-      Type: "Object",
-      // Identifier bindings go here
-      c: undefined,
-    }
-    outer: <null>,
-    ThisBinding: <Global Object>
-  }
+    // Just return a value to define the module export.
+    // This example returns an object, but the module
+    // can return a function as the exported value.
+    return {};
+}));
+```
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+### System.register
+
+`System.register` 형식은 ES5에서 ES6 모듈 구문을 지원하도록 설계되었다.
+
+```javascript
+import { p as q } from './dep';
+    
+var s = 'local';
+    
+export function func() {  
+    return q;
+}
+    
+export class C {  
 }
 ```
+
 ---
 
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
+### ES6 module format
+
 ```javascript
-  FunctionExectionContext = {
-  LexicalEnvironment: {
-      EnvironmentRecord: {
-        Type: "Declarative",
-        // Identifier bindings go here
-        Arguments: {0: 20, 1: 30, length: 2},
-      },
-      outer: <GlobalLexicalEnvironment>,
-      ThisBinding: <Global Object or undefined>,
-    },
-  VariableEnvironment: {
-      EnvironmentRecord: {
-        Type: "Declarative",
-        // Identifier bindings go here
-        g: undefined
-      },
-      outer: <GlobalLexicalEnvironment>,
-      ThisBinding: <Global Object or undefined>
+    // lib.js
+    // Export the function
+    export function sayHello(){  
+      console.log('Hello');
     }
-  }
-
+    // Do not export the function
+    function somePrivateFunction(){  
+      // ...
+    }
 ```
----
 
-<!--
-_backgroundColor: #123
-_color: #aaa
--->
+사용하려면 import로 불러서 사용한다.
+
 ```javascript
-  FunctionExectionContext = {
-  LexicalEnvironment: {
-      EnvironmentRecord: {
-        Type: "Declarative",
-        // Identifier bindings go here
-        Arguments: {0: 20, 1: 30, length: 2},
-      },
-      outer: <GlobalLexicalEnvironment>,
-      ThisBinding: <Global Object or undefined>,
-    },
-  VariableEnvironment: {
-      EnvironmentRecord: {
-        Type: "Declarative",
-        // Identifier bindings go here
-        g: 20
-      },
-      outer: <GlobalLexicalEnvironment>,
-      ThisBinding: <Global Object or undefined>
-    }
-  }
+import { sayHello } from './lib';
+    
+sayHello();  
+// => Hell
 ```
+
+아직 브라우저는 ES6문법을 지원하지 않는다. 이미 ES6 모듈 포맷을 사용할 수 있지만 브라우저에서 코드를 실제로 실행하기 전에 코드를 **AMD** 나 **CommonJS** 와 같은 **ES5 모듈 형식으로 바꾸기 위해 Babel과 같은 변환기가 필요하게 된다.**
+
 ---
 
 <!--
 _backgroundColor: #123
 _color: #aaa
 -->
-함수가 완료된 후 반환 값은 c 안에 저장된다. 그래서 글로벌 Variable Environment이 업데이트된다. 그 후, 전역 코드가 완료되고 프로그램이 완료가 된다.
+## Module loaders
 
-`let` 및 `const` 정의 변수는 생성 단계에서 연관된 값이 없지만 `var` 정의 변수는 `undefined` 로 설정된다.
+모듈 로더는 특정 모듈 형식으로 작성된 모듈을 해석하고 load한다.
 
-이는 생성 단계에서 함수 선언이 환경에 전체적으로 저장되는 동안 변수 및 함수 선언에 대해 코드가 검색되고 변수가 초기에 `undefined` (`var`의 경우)로 설정되거나 초기화되지 않은 상태로 유지되기 때문이다. `let`과 `const`의 경우).
+런타임 시점에 loader를 실행한다.
 
-이것이 `var` 정의 변수가 선언되기 전에 (정의되지는 않았지만) `var` 정의 변수에 액세스 할 수 있지만 `let` 및 `const` 변수가 선언되기 전에 액세스 할 때 참조 오류가 발생하는 이유이다.
+- 브라우저에서 모듈 로더를 로드한다.
+- 모듈로더에게 어느 파일을 로드할 것인지 알려준다.
+- 모듈로더가 주파일을 다운로드해서 해석한다.
+- 필요한 경우에는 모듈 로더가 파일을 다운로드한다.
 
-실행 단계에서 자바스크립트 엔진이 `let` 변수의 값을 소스 코드에서 선언된 실제 위치에서 찾지 못하면 정의되지 않은 값을 할당합니다.
+널리 사용되는 모듈 로더는 아래와 같이 있다.
+
+- RequireJS : AMD 형식의 모듈 용 로더
+- SystemJS : AMD, CommonJS, UMD 또는 System.register 형식의 모듈 용 로더
+  
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
+## Module bundlers
+
+모듈 번들러는 모듈 로더를 대체한다. 그러나 로더와 차이점은 모듈 번들은 빌드시에 실행이 된다.
+
+- 빌드를 할 때 모듈 번들을 실행하여 번들파일을 생성한다.
+- 브라우저에서 번들을 로드한다.
+
+널리 사용되는 모듈 번들러는 아래와 같이 있다.
+
+- Browserify : CommonJS 모듈 용 bundler
+- Webpack : AMD, CommonJS, ES6 모듈 용 bundler
 
