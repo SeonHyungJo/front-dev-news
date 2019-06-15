@@ -296,6 +296,21 @@ I saved $5 on this order.
 _backgroundColor: #123
 _color: #aaa
 -->
+### Flag
+
+Flag | Description
+-----|------------
+g | 전역 검색
+i | 대소문자 구분 없는 검색
+m | 다중행(multi-line) 검색
+u | 유니코드; 패턴을 유니코드 코드 포인트의 나열로 취급한다.
+
+---
+
+<!--
+_backgroundColor: #123
+_color: #aaa
+-->
 
 #### Reference
 
