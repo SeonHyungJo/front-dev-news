@@ -7,8 +7,7 @@ class CloudLayout {
   }
   *layout(children, edges, constraints, styleMap){
     const childFragments = yield children.map(child => {
-      const level = parseInt(child.styleMap.get("--cloud-level"))
-      return child.layoutNextFragment({...constraints, level: level})
+      return child.layoutNextFragment(constraints)
     })
 
     const availableInlineSize = constraints.fixedInlineSize;
