@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="index.css">
+  <!-- <script src="index.js"></script> -->
+  <title>Document</title>
+</head>
+
+<body>
+  <div class="bar">
+  </div>
+  <header class="profile">
+    <img src="./bunny.svg" class="avatar">
+    <h1 class="name">Houdini Bunny</h1>
+    <h2 class="handle">@HoudiniBunny</h2>
+    <section class="description">
+      Makes cute web technology awesome
+      <br />
+      <br />
+      <a href="#">houdini.glitch.me</a>
+    </section>
+    <section class="meta">
+      <span class="location">🎩</span>
+      <a class="homepage" href="https://snugug.com">snugug.com</a>
+    </section>
+    <section class="stats">
+      <span class="following">1,337</span> Following
+      <span class="followers">9,659</span> Followers
+    </section>
+    <button class="follow">Follow</button>
+  </header>
+  <section class="tweets">
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta"> <span class="name">Houdini Bunny</span>
+        <span class="handle">@HoudiniBunny</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New Carrot-🥕 Carrots are yummy! You should eat some
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta">
+        <span class="name">Surma</span>
+        <span class="handle">@DasSurma</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New post-🎩 I'm making magic now!
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta"> <span class="name">Houdini Bunny</span>
+        <span class="handle">@HoudiniBunny</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New Carrot-🥕 Carrots are yummy! You should eat some
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta">
+        <span class="name">Surma</span>
+        <span class="handle">@DasSurma</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New post-🎩 I'm making magic now!
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta"> <span class="name">Houdini Bunny</span>
+        <span class="handle">@HoudiniBunny</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New Carrot-🥕 Carrots are yummy! You should eat some
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta">
+        <span class="name">Surma</span>
+        <span class="handle">@DasSurma</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New post-🎩 I'm making magic now!
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta"> <span class="name">Houdini Bunny</span>
+        <span class="handle">@HoudiniBunny</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New Carrot-🥕 Carrots are yummy! You should eat some
+    </section>
+    <section class="tweet">
+      <img src="./bunny.svg" class="avatar">
+      <section class="meta">
+        <span class="name">Surma</span>
+        <span class="handle">@DasSurma</span>
+        <span class="date">Dec 27</span>
+      </section>
+      🐰 New post-🎩 I'm making magic now!
+    </section>
+  </section>
+</body>
+<script>
+
+  async function init() {
+    
+    const scrollSource = document.body;
+    const bar = document.querySelector('.bar');
+    const avatar = document.querySelector('.profile .avatar');
+    const follow = document.querySelector('.profile .follow');
+    const name = document.querySelector('.profile .name');
+    const timeRange = 1000;
+    await CSS.animationWorklet.addModule('twitter-header-animator.js');
+    const scrollTimeline = new ScrollTimeline({ scrollSource, timeRange });
+
+    ['--avatar-size',
+      '--avatar-border',
+      '--header-height',
+      '--font-base',
+      '--bar-height',
+      '--spacer',
+    ].forEach(name => {
+      CSS.registerProperty({
+        name,
+        syntax: '<length>',
+        initialValue: '0px',
+        inherits: true
+      });
+    });
+
+    const barEffect = new KeyframeEffect(
+      bar,
+      [
+        { opacity: 0 },
+        { opacity: 1 },
+      ],
+      {
+        duration: 0,
+        fill: 'both',
+      }
+    );
+
+    const avatarEffect = new KeyframeEffect(
+      avatar,
+      [
+        { transform: 'translateY(0) scale(1)' },
+        { transform: 'translateY(0px) scale(0)', offset: 0 },
+        { transform: 'translateY(0px) scale(0)' },
+      ],
+      {
+        duration: timeRange,
+        fill: 'both',
+      }
+    );
+    new WorkletAnimation(
+      'twitter-header',
+      avatarEffect,
+      scrollTimeline,
+      []
+    ).play();
+
+    const followEffect = new KeyframeEffect(
+      follow,
+      [
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(0)', offset: 0 },
+        { transform: 'translateY(0px)' },
+      ],
+      {
+        duration: timeRange,
+        fill: 'both',
+      }
+    );
+    new WorkletAnimation(
+      'twitter-header',
+      followEffect,
+      scrollTimeline,
+      []
+    ).play();
+
+    const nameEffect = new KeyframeEffect(
+      name,
+      [
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(0)', offset: 0 },
+        { transform: 'translateY(0) translateX(0px)', offset: 0 },
+        { transform: 'translateY(0px) translateX(0px)' },
+      ],
+      {
+        duration: timeRange,
+        fill: 'both',
+      }
+    );
+    new WorkletAnimation(
+      'twitter-header',
+      nameEffect,
+      scrollTimeline,
+      []
+    ).play();
+
+    function updateTimings() {
+      const scrollSourceStyles = document.body.computedStyleMap();
+      const viewportHeight = scrollSource.clientHeight;
+      const maxScroll = scrollSource.scrollHeight - viewportHeight;
+
+      const avatarDistanceFromTop = scrollSourceStyles.get('--header-height').value / 2 - scrollSourceStyles.get('--avatar-size').value / 2 - scrollSourceStyles.get('--avatar-border').value;
+      const timeWhenAvatarTouchesTop = avatarDistanceFromTop / maxScroll * timeRange;
+      const maxAvatarOffset = maxScroll - avatarDistanceFromTop;
+      const targetAvatarScale = scrollSourceStyles.get('--bar-height').value / (scrollSourceStyles.get('--avatar-size').value + scrollSourceStyles.get('--avatar-border').value * 2);
+
+      const avatarEffectKeyFrames = avatarEffect.getKeyframes();
+      avatarEffectKeyFrames[1].transform = `translateY(0px) scale(${targetAvatarScale})`;
+      avatarEffectKeyFrames[1].offset = timeWhenAvatarTouchesTop / timeRange;
+      avatarEffectKeyFrames[2].transform = `translateY(${maxAvatarOffset}px) scale(${targetAvatarScale})`;
+      avatarEffect.setKeyframes(avatarEffectKeyFrames);
+
+      console.log(timeWhenAvatarTouchesTop);
+      barEffect.duration = timeWhenAvatarTouchesTop;
+
+      const followDistanceFromTop = scrollSourceStyles.get('--header-height').value / 2 + scrollSourceStyles.get('--spacer').value / 2;
+      const timeWhenFollowTouchesTop = followDistanceFromTop / maxScroll * timeRange;
+      const maxFollowOffset = maxScroll - followDistanceFromTop;
+      const followEffectKeyFrames = followEffect.getKeyframes();
+      followEffectKeyFrames[1].offset = timeWhenFollowTouchesTop / timeRange;
+      followEffectKeyFrames[2].transform = `translateY(${maxFollowOffset}px)`;
+      followEffect.setKeyframes(followEffectKeyFrames);
+
+      const nameDistanceFromTop = name.offsetTop - scrollSourceStyles.get('--spacer').value;
+      const timeWhenNameTouchesTop = nameDistanceFromTop / maxScroll * timeRange;
+      const maxNameOffset = maxScroll - nameDistanceFromTop;
+      const nameEffectKeyFrames = nameEffect.getKeyframes();
+      const nameLeftOffset = scrollSourceStyles.get('--bar-height').value + scrollSourceStyles.get('--spacer').value / 2;
+      nameEffectKeyFrames[1].offset = timeWhenAvatarTouchesTop / timeRange;
+      nameEffectKeyFrames[2].transform = `translateY(0) translateX(${nameLeftOffset}px)`;
+      nameEffectKeyFrames[2].offset = timeWhenNameTouchesTop / timeRange;
+      nameEffectKeyFrames[3].transform = `translateY(${maxNameOffset}px) translateX(${nameLeftOffset}px)`;
+      nameEffect.setKeyframes(nameEffectKeyFrames);
+    }
+    updateTimings();
+    window.addEventListener('resize', _ => updateTimings());
+  }
+
+  init()
+</script>
+
+</html>
