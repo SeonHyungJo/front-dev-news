@@ -593,7 +593,7 @@ el.style.opacity === '0.30.1' // CSSOM은 문자열로 붙는다!
 ---
 4. 성능 향상 – 브라우저는 문자열 값을 직렬화, 병렬화하는 작업을 줄여야 합니다. 이제 엔진은 JS, C++과 비슷한 방식으로 CSS 값을 이해합니다. 
 
-> T초기 CSS 벤치마크에서 Typed OM이 기존의 CSSOM을 사용할 때보다 초당 작동 속도가 30%까지 빠르다는 것을 입증됐습니다. 이는 `requestionAnimationFrame()`를 사용하여 빠른 CSS 애니메이션을 구현할 때 중요합니다.
+> 초기 CSS 벤치마크에서 Typed OM이 기존의 CSSOM을 사용할 때보다 초당 작동 속도가 30%까지 빠르다는 것을 입증됐습니다. 이는 `requestionAnimationFrame()`를 사용하여 빠른 CSS 애니메이션을 구현할 때 중요합니다.
 
 5. 오류 처리 – 새로운 파싱 메소드는 CSS 세계에서 오류 처리를 가능하도록 제공합니다.(try~catch)
 6. CSSOM은 이름이 camel-case인지 문자열인지 가늠할 수 없었습니다(ex. el.style.backgroundColor vs el.style['background-color']). Typed OM의 CSS 속성 이름은 항상 문자열이며, 실제 CSS에서 작성한 것과 일치시키면 됩니다.
