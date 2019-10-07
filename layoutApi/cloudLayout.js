@@ -1,13 +1,14 @@
 class CloudLayout {
   static get inputProperties() {
-    return ["--random-seed", "--cloud-level"];
+    return ["--random-seed"];
   }
   
   *intrinsicSizes(children, edges, styleMap) {
   }
+
   *layout(children, edges, constraints, styleMap){
     const childFragments = yield children.map(child => {
-      return child.layoutNextFragment(constraints)
+      return child.layoutNextFragment()
     })
 
     const availableInlineSize = constraints.fixedInlineSize;
@@ -20,10 +21,7 @@ class CloudLayout {
       return x - Math.floor(x);
     }
 
-    let nextBlockOffset = 0;
     for (const fragment of childFragments) {
-      let i = 0;
-      console.log(fragment)
       fragment.blockOffset = random() * availableBlockSize;
       fragment.inlineOffset = random() * availableInlineSize;
     }

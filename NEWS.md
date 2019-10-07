@@ -59,19 +59,21 @@ https://js-dev-note.netlify.com
 
 그리고
 
-- Typed OM
+- **Typed OM**
 
 ---
 ## Houdini(후디니)
+
+W3C Houdini WG에서 진행중인 프로젝트입니다.
 
 Houdini 프로젝트는 Mozilla, Apple, Opera, Microsoft, HP, Intel 그리고 Google의 엔지니어들로 구성되어있습니다.
 
 공식 W3C 표준으로 채택되기 위한 *표준 초안*들을 작성하고 있습니다.
 
-"Houdini"라 하면 표준 문서들의 내용을 의미합니다. 아직[Houdini 표준안 초안](http://dev.w3.org/houdini/)들은 미완성 단계이며, 일부 초안은 가안(임시로 만든 안건)입니다.
+아직[Houdini 표준안 초안](http://dev.w3.org/houdini/)들은 미완성 단계이며, 일부 초안은 가안(임시로 만든 안건)입니다.
 
 ---
-## 들어가기전에
+## 사용해하기 위해선
 
 1. `Chrome://flag` 
 2. `Experimental Web Platform features`
@@ -82,11 +84,12 @@ Houdini 프로젝트는 Mozilla, Apple, Opera, Microsoft, HP, Intel 그리고 Go
 
 CSS Painting API를 사용하게 되면 CSS 속성 중 이미지 타입에 사용할 수 있는 모양을 정의할 수 있습니다.
 
-Image Type?
+Image Type이란?
 
 - [background-image](https://googlechromelabs.github.io/houdini-samples/paint-worklet/parameter-checkerboard/)
 - [border-image](https://googlechromelabs.github.io/houdini-samples/paint-worklet/border-color/)
 - list-style-image
+- 등등
 
 이 중 background-image 속성을 사용하면 CSS가 적용된 대상이 그려지는 형태를 정의할 수 있습니다.
 
@@ -106,31 +109,31 @@ Paint는 대상을 그리는 방법을 다루는 단계입니다.
 ---
 CSS Painting API는 Worklet의 형태로 개발자가 정의한대로 대상을 그리는 코드를 추가합니다.
 
-![](https://user-images.githubusercontent.com/24274424/66269569-c5995c00-e884-11e9-8da5-567bfbae41f6.png)
+![width:100%](https://user-images.githubusercontent.com/24274424/66278813-af70b780-e8e7-11e9-8cc7-29bc4d56ac03.png)
 
 ---
 위에서 언급했듯이 Worklet은 Worker의 경량 버전이라고도 합니다.
 
-하지만 Worker와는 다르게 한 스레드에 여러개가 생성될 수 있고, 메인 스레드에서 실행될 수 있습니다.
+하지만 Worker와는 다르게 한 Thread에 여러개가 생성될 수 있고, 메인 Thread에서 실행될 수 있습니다.
 
-![bg right width:500px](https://user-images.githubusercontent.com/24274424/66269600-56703780-e885-11e9-95e3-6334c74bce2e.png)
+![bg right width:500px](https://user-images.githubusercontent.com/24274424/66278723-eb574d00-e8e6-11e9-9841-eb4e1a909950.png)
 
 ---
 Worklet은 독립적인 GlobalScope와 Event Loop를 가지고 있습니다.
 
-![bg right width:500px](https://user-images.githubusercontent.com/24274424/66269618-8a4b5d00-e885-11e9-8d70-aae76707a277.png)
+![bg right width:500px](https://user-images.githubusercontent.com/24274424/66278789-84866380-e8e7-11e9-91e0-9137bba2fd5d.png)
 
 결국, 그려야 할 대상이 많거나, 성능이 필요한 경우에 여러 개의 Thread에서 병렬로 동작할 수 있게 합니다.
 
 ---
 ## 기본 형태
 
-독립적인 파일을 만들어서 addModule을 하는 형태입니다.
+그리는 부분을 독립적인 파일로 만들어서 addModule을 하는 형태입니다.
 
 ```js
 CSS.paintWorklet.addModule("slideWorklet.js")
 ```
-위의 파일을 class로 작성을 하며 `registerPaint`를 사용하여 해당 paint를 등록합니다.
+위의 파일에 JS Class로 작성을 하며, `registerPaint`를 사용하여 해당 paint를 등록합니다.
 
 ---
 
@@ -143,9 +146,9 @@ class Slide {
 
 registerPaint("slide", Slide);
 ```
-paint method에는 기본 4가지의 인자가 있습니다.
+`paint method`에는 기본 4개의 인자가 있습니다.
 
-- ctx : PaintRenderingContext2D 객체로, 대상이 어떻게 그려질지 표현합니다.
+- ctx : `PaintRenderingContext2D` 객체로, 대상이 어떻게 그려질지 표현합니다.
 - geom : 대상의 가로, 세로 크기정보입니다.
 - props : 대상에게 적용된 스타일 정보입니다.
 - args : CSS에서 전달한 값을 입력받습니다.
@@ -154,6 +157,8 @@ props와 args는 각각 `inputProperties()`, `inputArguments()`를 사용하�
 
 ---
 ## 예제
+
+기존의 슬라이드 체크박스와 Paint API를 사용한 슬라이드 체크박스를 만들어 보겠습니다.
 
 **index.html**
 ```html
@@ -311,6 +316,13 @@ registerPaint("slide", Slide);
 ```
 
 ---
+## 결과화면
+
+![bg right width:300px height:320px](https://user-images.githubusercontent.com/24274424/66278979-0f1b9280-e8e9-11e9-999e-50f35dc4c1d8.png)
+
+![bg right width:300px height:320px](https://user-images.githubusercontent.com/24274424/66278977-07f48480-e8e9-11e9-87c9-8dac272fb8ce.png)
+
+---
 ## 성능비교
 
 렌더링 파이프라인은 이전 단계의 결과물이 다음 단계의 입력으로 사용됩니다.
@@ -340,7 +352,7 @@ CSS Layout API를 사용하면 CSS가 적용된 대상의 자식 엘리먼트들
 ---
 CSS Layout API는 Worklet의 형태로 자식 엘리먼트를 개발자가 정의한대로 배치하는 코드를 추가합니다.
 
-![](https://user-images.githubusercontent.com/24274424/66270240-f3ce6a00-e88b-11e9-8960-6f4e4ef9d48c.png)
+![width:100%](https://user-images.githubusercontent.com/24274424/66279040-8bae7100-e8e9-11e9-951d-a6b0b2bb80df.png)
 
 ---
 기존의 방법은, 렌더링이 끝난 후, JS로 재배치하면 렌더링 파이프라인을 한번 더 수행합니다.
@@ -349,6 +361,10 @@ CSS Layout API는 Worklet의 형태로 자식 엘리먼트를 개발자가 정�
 
 ---
 ### **기본 형태**
+
+```js
+CSS.layoutWorklet.addModule('cloudLayout.js');
+```
 
 ```js
 class CloudLayout {
@@ -376,7 +392,7 @@ layout() 함수는 자식요소들의 비동기 처리를 위해서 제네레이
 
 ```js
 const childFragments = yield children.map(child => {
-    return child.layoutNextFragment(constraints)
+    return child.layoutNextFragment()
 })
 ```
 각각 자식요소에서 layoutNextFragment() 함수를 호출해서 자식요소의 크기를 알 수 있습니다.
@@ -399,6 +415,8 @@ blockOffset, inlineOffset은 fragment가 원점으로 부터 떨어진 거리를
 
 ---
 ### **예제**
+
+Parent Div의 중심을 기준으로 단어 랜덤배치를 해보겠습니다.
 
 **index.html**
 ```html
@@ -428,12 +446,12 @@ CSS.layoutWorklet.addModule('cloudLayout.js');
 
 ---
 **index.css**
-```js
+```css
 .cloud{
   display: layout(cloud);
   --random-seed: 30;
-  width : 500px;
-  height : 500px;
+  width : 600px;
+  height : 600px;
   border-radius: 25px;
 }
 
@@ -450,14 +468,15 @@ CSS.layoutWorklet.addModule('cloudLayout.js');
 ```js
 class CloudLayout {
   static get inputProperties() {
-    return ["--random-seed", "--cloud-level"];
+    return ["--random-seed"];
   }
   
   *intrinsicSizes(children, edges, styleMap) {
   }
+
   *layout(children, edges, constraints, styleMap){
     const childFragments = yield children.map(child => {
-      return child.layoutNextFragment(constraints)
+      return child.layoutNextFragment()
     })
 
     const availableInlineSize = constraints.fixedInlineSize;
@@ -470,10 +489,7 @@ class CloudLayout {
       return x - Math.floor(x);
     }
 
-    let nextBlockOffset = 0;
     for (const fragment of childFragments) {
-      let i = 0;
-      console.log(fragment)
       fragment.blockOffset = random() * availableBlockSize;
       fragment.inlineOffset = random() * availableInlineSize;
     }
@@ -486,6 +502,12 @@ class CloudLayout {
 
 registerLayout("cloud", CloudLayout);
 ```
+
+---
+## 결과화면
+
+![bg right width:500px](https://user-images.githubusercontent.com/24274424/66279265-5dca2c00-e8eb-11e9-8277-cde094f848ed.png)
+
 ---
 ## Typed OM
 
@@ -498,13 +520,13 @@ JavaScript에서 .style을 read 또는 set할 때 항상 아래와 같이 사용
 ```js
 // 요소의 스타일
 el.style.opacity = 0.3;
-typeof el.style.opacity === 'string' // true??
+typeof el.style.opacity === 'string' // true
  
 // 스타일시트 규칙
 document.styleSheets[0].cssRules[0].style.opacity = 0.3;
 ```
 ---
-### **CSS Typed OM이란?**
+### CSS Typed OM이란?
 
 새로 나온 CSS Typed Object Model(Typed OM)은 CSS 값에 타입과 메소드, 적절한 객체모델을 추가함으로써 세계관을 넓혔습니다.
 
@@ -514,12 +536,12 @@ document.styleSheets[0].cssRules[0].style.opacity = 0.3;
 
 스타일시트 규칙에는 `.styleMap` 속성을 사용합니다.
 
-두 속성 모두 StylePropertyMap 객체를 반환합니다.
+두 속성 모두 **StylePropertyMap** 객체를 반환합니다.
 
 ```css
 // 요소의 스타일
 el.attributeStyleMap.set('opacity', 0.3);
-typeof el.attributeStyleMap.get('opacity').value === 'number' // true 숫자값이다!!!!
+typeof el.attributeStyleMap.get('opacity').value === 'number' // true
  
 // 스타일시트 규칙
 const stylesheet = document.styleSheets[0];
@@ -550,7 +572,7 @@ el.attributeStyleMap.clear(); // 모든 스타일 제거
 > 주어진 CSS 속성이 숫자를 지원한다면, Typed OM은 문자열 값을 입력하더라도 항상 숫자값을 반환합니다!
 
 ---
-### 이**점**
+### 이점
 
 CSS Typed OM이 해결하려는 문제가 무엇일까요? CSS Typed OM이 이전의 Object Model보다 훨씬 장황하다고 주장할 수도 있습니다.
 
@@ -558,18 +580,22 @@ Typed OM을 작성하기 전에 아래의 몇 가지 주요 특징을 고려하�
 
 1. 적은 버그 – 예) 숫자 값은 문자열이 아니라 항상 숫자로 반환됩니다.
 
-    // CSSOM은 문자열로 붙는다!// CSSOM은 문자열로 붙는다!
-    
+```js
+el.style.opacity += 0.1;
+el.style.opacity === '0.30.1' // CSSOM은 문자열로 붙는다!
+```
 
 2. 산술 연산 및 단위 변환 – 절대 길이 단위를 변환하고(px → cm), 기본 수학 연산을 수행할 수 있습니다.
-3. 값 클램핑 & 반올림 – Typed OM은 값을 반올림 및 클램핑해서 속성의 허용 범위 내에 있을 수 있습니다. ex) opacity <= 1
+3. 값 클램핑 & 반올림 – Typed OM은 값을 반올림 및 클램핑해서 속성의 허용 범위 내에 있을 수 있습니다. ex) opacity <= 1 **(그러나 안됨)**
 
 > 컴퓨터 그래픽에서 '클램핑'이란, 어떤 위치를 범위 안으로 한정시키는 방법입니다. 위치를 제일 가까운 사용 가능한 값으로 옮깁니다.
 
 ---
-4. 성능 향상 – 브라우저는 문자열 값을 직렬화, 병렬화하는 작업을 줄여야 합니다. 이제 엔진은 JS, C++과 비슷한 방식으로 CSS 값을 이해합니다. Tab Akins는 초기 CSS 벤치마크에서 Typed OM이 기존의 CSSOM을 사용할 때보다 초당 작동 속도가 30%까지 빠르다는 것을 입증했습니다. 이는 requestionAnimationFrame()를 사용하여 빠른 CSS 애니메이션을 구현할 때 중요합니다.
+4. 성능 향상 – 브라우저는 문자열 값을 직렬화, 병렬화하는 작업을 줄여야 합니다. 이제 엔진은 JS, C++과 비슷한 방식으로 CSS 값을 이해합니다. 
 
-5. 오류 처리 – 새로운 파싱 메소드는 CSS 세계에서 오류 처리를 제공합니다.
+> T초기 CSS 벤치마크에서 Typed OM이 기존의 CSSOM을 사용할 때보다 초당 작동 속도가 30%까지 빠르다는 것을 입증됐습니다. 이는 `requestionAnimationFrame()`를 사용하여 빠른 CSS 애니메이션을 구현할 때 중요합니다.
+
+5. 오류 처리 – 새로운 파싱 메소드는 CSS 세계에서 오류 처리를 가능하도록 제공합니다.(try~catch)
 6. CSSOM은 이름이 camel-case인지 문자열인지 가늠할 수 없었습니다(ex. el.style.backgroundColor vs el.style['background-color']). Typed OM의 CSS 속성 이름은 항상 문자열이며, 실제 CSS에서 작성한 것과 일치시키면 됩니다.
 
 ---

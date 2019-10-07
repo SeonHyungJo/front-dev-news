@@ -509,9 +509,6 @@ Typed OM을 작성하기 전에 아래의 몇 가지 주요 특징을 고려하�
 ```JavaScript
 el.style.opacity += 0.1;
 el.style.opacity === '0.30.1' // CSSOM은 문자열로 붙는다!
-
-el.style.opacity += 0.1;
-el.style.opacity === '0.30.1' // CSSOM은 문자열로 붙는다!
 ```
 
 2. 산술 연산 및 단위 변환 – 절대 길이 단위를 변환하고(px → cm), 기본 수학 연산을 수행할 수 있습니다.
